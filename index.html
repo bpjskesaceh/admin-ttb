@@ -73,9 +73,6 @@
       white-space: nowrap;
     }
 
-    /* ============================
-       FIX JENIS LAYANAN BIAR FULL
-       ============================ */
     .table td:nth-child(8) {
       white-space: normal !important;
       max-width: 600px !important;
@@ -170,6 +167,8 @@
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbwDXtbHeVRZ2N5TUKSNwwYl-U8yUDYVDwRK8jNsTqKbNM3qdvMZQnOT9EHeS79NpNFr/exec";
 
+let masterData = []; // 🔥 DATA ASLI UNTUK SEARCH
+
 function showNotif(msg,type="success"){
   let x=document.getElementById("notifPopup");
   x.textContent=msg;
@@ -209,7 +208,9 @@ async function loadData(filter){
       ? data.filter(x=>new Date(x.Timestamp).toLocaleDateString("id-ID")===today)
       : data;
 
-    renderTable(filtered);
+    masterData = filtered;   // 🔥 SIMPAN DATA ASLI
+    renderTable(masterData);
+
   }catch(e){
     dataTable.innerHTML=`<tr><td colspan="11">Gagal memuat data.</td></tr>`;
   }
@@ -272,6 +273,25 @@ async function saveRow(kode,i){
     showNotif("Tidak terhubung","error");
   }
 }
+
+/* 🔥🔥 FITUR PENCARIAN REAL-TIME 🔥🔥 */
+searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.toLowerCase().trim();
+
+  if (!keyword) {
+    renderTable(masterData);
+    return;
+  }
+
+  const filtered = masterData.filter(item =>
+    Object.values(item)
+      .join(" ")
+      .toLowerCase()
+      .includes(keyword)
+  );
+
+  renderTable(filtered);
+});
 
 todayBtn.onclick=()=>loadData("today");
 allBtn.onclick=()=>loadData("all");
