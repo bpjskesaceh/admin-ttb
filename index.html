@@ -274,7 +274,22 @@ if(localStorage.getItem("isLoggedIn")){
   dashboardPage.style.display="block";
   loadData("today");
 }
+
+/* 🔥 Tekan ENTER untuk login tanpa klik tombol */
+authUser.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    authPass.focus(); // pindah ke kolom password
+  }
+});
+
+authPass.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") {
+    authBtn.click(); // langsung login
+  }
+});
+
 </script>
 
 </body>
 </html>
+
