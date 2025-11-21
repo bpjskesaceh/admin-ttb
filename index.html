@@ -35,53 +35,6 @@
       font-size: 14px;
       font-weight: 600;
     }
-
-    #loginPage {
-      display:flex; align-items:center; justify-content:center;
-      height:100vh;
-    }
-
-    .auth-card {
-      background:#ffffffcc; backdrop-filter:blur(10px);
-      padding:40px; border-radius:20px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.08);
-      width:100%; max-width:400px;
-    }
-
-    .dashboard-card {
-      background:white; border-radius: var(--radius);
-      padding:30px; width:100%; max-width:1100px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.08);
-    }
-
-    h5.title {
-      color: var(--primary); font-weight:700; text-align:center;
-      margin-bottom:25px;
-    }
-
-    table.table td, table.table th {
-      border-left: none !important;
-      border-right: none !important;
-    }
-
-    table.table tr {
-      border-bottom: 1px solid #e6e6e6;
-    }
-
-    table.table thead th {
-      border-bottom: 2px solid #e0e0e0 !important;
-      white-space: nowrap;
-    }
-
-    .table td:nth-child(8) {
-      white-space: normal !important;
-      max-width: 600px !important;
-      overflow: visible !important;
-      text-overflow: unset !important;
-    }
-
-    .table td:nth-child(9) { min-width: 150px; }
-    .table td:nth-child(10) { width: 90px; }
   </style>
 </head>
 
@@ -99,8 +52,7 @@
 
   <img src="logo-bpjs.png" style="height:40px; display:block; margin:0 auto;" class="mb-3">
 
-  <h4 class="fw-bold"
-      style="color:var(--primary); text-align:center; margin-bottom:25px;">
+  <h4 class="fw-bold" style="color:var(--primary); text-align:center; margin-bottom:25px;">
       Tanda Terima Berkas
   </h4>
 
@@ -167,8 +119,9 @@
 <script>
 const API_URL="https://script.google.com/macros/s/AKfycbyMw_h9BI1XAPdhKBxKhCMgETFbQS52YodteUqWVcJf6ZDpmJOBhCZ4rUTlJdvTTfjmqQ/exec";
 
-let masterData = []; // 🔥 DATA ASLI UNTUK SEARCH
+let masterData = [];
 
+// NOTIF
 function showNotif(msg,type="success"){
   let x=document.getElementById("notifPopup");
   x.textContent=msg;
@@ -179,6 +132,7 @@ function showNotif(msg,type="success"){
 
 function logout(){ localStorage.removeItem("isLoggedIn"); location.reload(); }
 
+// LOGIN
 document.getElementById("authBtn").onclick=()=>{
   const u=authUser.value.trim(), p=authPass.value.trim();
   if((u==="admin"||u==="Admin") && p==="12345"){
@@ -189,6 +143,7 @@ document.getElementById("authBtn").onclick=()=>{
   } else showNotif("Username atau password salah!","error");
 };
 
+// JAM
 function updateClock(){
   const n=new Date();
   clock.textContent =
@@ -198,6 +153,8 @@ function updateClock(){
 }
 setInterval(updateClock,1000); updateClock();
 
+
+// LOAD DATA
 async function loadData(filter){
   dataTable.innerHTML=`<tr><td colspan="11">Memuat data...</td></tr>`;
   try{
@@ -208,7 +165,7 @@ async function loadData(filter){
       ? data.filter(x=>new Date(x.Timestamp).toLocaleDateString("id-ID")===today)
       : data;
 
-    masterData = filtered;   // 🔥 SIMPAN DATA ASLI
+    masterData = filtered;
     renderTable(masterData);
 
   }catch(e){
@@ -216,6 +173,7 @@ async function loadData(filter){
   }
 }
 
+// RENDER TABLE
 function renderTable(data){
   dataTable.innerHTML="";
   if(!data.length){
@@ -257,24 +215,38 @@ function renderTable(data){
   });
 }
 
+
+
+/*  
+==================================================
+🔥 FIX UTAMA — AGAR POST TERKIRIM DAN TIDAK BLOK CORS
+==================================================
+*/
 async function saveRow(kode,i){
   const newStatus=document.getElementById(`status-${i}`).value;
-  try{
-    const res=JSON.parse(await (await fetch(API_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({kode,status:newStatus})
-    })).text());
 
-    if(res.status==="success") showNotif("Status disimpan!");
-    else showNotif(res.message,"error");
+  try{
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded" 
+      },
+      body: `kode=${encodeURIComponent(kode)}&status=${encodeURIComponent(newStatus)}`
+    });
+
+    const result = await res.json();
+
+    if(result.status==="success") showNotif("Status disimpan!");
+    else showNotif(result.message,"error");
 
   }catch(e){
     showNotif("Tidak terhubung","error");
   }
 }
 
-/* 🔥🔥 FITUR PENCARIAN REAL-TIME 🔥🔥 */
+
+
+/* 🔥 SEARCH REAL-TIME */
 searchInput.addEventListener("input", () => {
   const keyword = searchInput.value.toLowerCase().trim();
 
@@ -306,4 +278,3 @@ if(localStorage.getItem("isLoggedIn")){
 
 </body>
 </html>
-
