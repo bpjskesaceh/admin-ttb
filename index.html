@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tanda Terima Berkas - Admin BPJS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #7f5af0;
+      --secondary: #2cb67d;
+      --bg: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+      --radius: 18px;
+    }
+
+    body {
+      font-family: "Poppins","Segoe UI",sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .navbar {
+      background: rgba(255,255,255,0.4);
+      backdrop-filter: blur(10px);
+      height: 60px;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+      padding: 0 20px;
+    }
+
+    #clock {
+      min-width: 160px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #loginPage {
+      display:flex; align-items:center; justify-content:center;
+      height:100vh;
+    }
+
+    .auth-card {
+      background:#ffffffcc; backdrop-filter:blur(10px);
+      padding:40px; border-radius:20px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.08);
+      width:100%; max-width:400px;
+    }
+
+    .dashboard-card {
+      background:white; border-radius: var(--radius);
+      padding:30px; width:100%; max-width:1100px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.08);
+    }
+
+    h5.title {
+      color: var(--primary); font-weight:700; text-align:center;
+      margin-bottom:25px;
+    }
+
+    table.table td, table.table th {
+      border-left: none !important;
+      border-right: none !important;
+    }
+
+    table.table tr {
+      border-bottom: 1px solid #e6e6e6;
+    }
+
+    table.table thead th {
+      border-bottom: 2px solid #e0e0e0 !important;
+      white-space: nowrap;
+    }
+
+    /* ============================
+       FIX JENIS LAYANAN BIAR FULL
+       ============================ */
+    .table td:nth-child(8) {
+      white-space: normal !important;
+      max-width: 600px !important;
+      overflow: visible !important;
+      text-overflow: unset !important;
+    }
+
+    .table td:nth-child(9) { min-width: 150px; }
+    .table td:nth-child(10) { width: 90px; }
+  </style>
+</head>
+
+<body>
+
+<div id="notifPopup" style="
+  display:none; position:fixed; top:20px; right:20px;
+  padding:12px 18px; border-radius:10px; 
+  color:white; font-weight:600; z-index:9999;">
+</div>
+
+<!-- LOGIN -->
+<div id="loginPage">
+<div class="auth-card text-center">
+
+  <img src="logo-bpjs.png" style="height:40px; display:block; margin:0 auto;" class="mb-3">
+
+  <h4 class="fw-bold"
+      style="color:var(--primary); text-align:center; margin-bottom:25px;">
+      Tanda Terima Berkas
+  </h4>
+
+    <input id="authUser" class="form-control mb-2" placeholder="Username" autocomplete="off">
+    <input id="authPass" type="password" class="form-control" placeholder="Password">
+
+    <button id="authBtn" class="btn btn-primary w-100 mt-3">Masuk</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardPage" style="display:none;">
+
+  <nav class="navbar d-flex justify-content-between align-items-center">
+    <img src="logo-bpjs.png" style="height:40px;">
+    <div class="d-flex align-items-center gap-3">
+      <span id="clock"></span>
+      <button class="btn btn-danger btn-sm" onclick="logout()">Keluar</button>
+    </div>
+  </nav>
+
+  <div class="d-flex justify-content-center p-4">
+    <div class="dashboard-card">
+
+      <h5 class="title">Tanda Terima Berkas BPJS Kesehatan</h5>
+
+      <div class="d-flex gap-2 flex-wrap mb-3">
+        <input id="searchInput" class="form-control" placeholder="Cari nama..." style="max-width:280px;">
+        <button class="btn btn-primary" id="todayBtn">📅 Data Hari Ini</button>
+        <button class="btn btn-secondary" id="allBtn">📋 Semua Data</button>
+        <button class="btn btn-success ms-auto" id="refreshBtn">🔄 Muat Ulang</button>
+      </div>
+
+      <!-- TABEL -->
+      <div class="table-responsive">
+        <table class="table align-middle text-center">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Nama</th>
+              <th>E-mail</th>
+              <th>NIK / No Kartu</th>
+              <th>No Handphone</th>
+              <th>FKTP</th>
+              <th>Dokter Gigi</th>
+              <th>Jenis Layanan</th>
+              <th>Status</th>
+              <th>Kode Pendaftaran</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+
+          <tbody id="dataTable">
+            <tr><td colspan="11">Memuat data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbwDXtbHeVRZ2N5TUKSNwwYl-U8yUDYVDwRK8jNsTqKbNM3qdvMZQnOT9EHeS79NpNFr/exec";
+
+function showNotif(msg,type="success"){
+  let x=document.getElementById("notifPopup");
+  x.textContent=msg;
+  x.style.background = type==="error" ? "#dc3545" : "#28a745";
+  x.style.display="block";
+  setTimeout(()=>x.style.display="none",2000);
+}
+
+function logout(){ localStorage.removeItem("isLoggedIn"); location.reload(); }
+
+document.getElementById("authBtn").onclick=()=>{
+  const u=authUser.value.trim(), p=authPass.value.trim();
+  if((u==="admin"||u==="Admin") && p==="12345"){
+    localStorage.setItem("isLoggedIn","true");
+    loginPage.style.display="none";
+    dashboardPage.style.display="block";
+    loadData("today");
+  } else showNotif("Username atau password salah!","error");
+};
+
+function updateClock(){
+  const n=new Date();
+  clock.textContent =
+    n.toLocaleDateString("id-ID",{weekday:"short"})+", "+
+    n.toLocaleDateString("id-ID")+" • "+
+    n.toLocaleTimeString("id-ID",{hour12:false});
+}
+setInterval(updateClock,1000); updateClock();
+
+async function loadData(filter){
+  dataTable.innerHTML=`<tr><td colspan="11">Memuat data...</td></tr>`;
+  try{
+    const data = JSON.parse(await (await fetch(API_URL)).text());
+    const today = new Date().toLocaleDateString("id-ID");
+
+    const filtered = filter==="today"
+      ? data.filter(x=>new Date(x.Timestamp).toLocaleDateString("id-ID")===today)
+      : data;
+
+    renderTable(filtered);
+  }catch(e){
+    dataTable.innerHTML=`<tr><td colspan="11">Gagal memuat data.</td></tr>`;
+  }
+}
+
+function renderTable(data){
+  dataTable.innerHTML="";
+  if(!data.length){
+    dataTable.innerHTML=`<tr><td colspan="11">Tidak ada data.</td></tr>`;
+    return;
+  }
+
+  data.forEach((item,i)=>{
+    dataTable.insertAdjacentHTML("beforeend",`
+      <tr>
+        <td>${i+1}</td>
+        <td>${item["Nama"]||"-"}</td>
+        <td>${item["E-mail"]||"-"}</td>
+        <td>${item["NIK/No Kartu"]||"-"}</td>
+        <td>${item["No Handphone"]||"-"}</td>
+        <td>${item["Nama FKTP"]||"-"}</td>
+        <td>${item["Dokter Gigi"]||"-"}</td>
+        <td>${item["Jenis Layanan"] || "-"}</td>
+
+        <td>
+          <select class="form-select form-select-sm w-auto mx-auto"
+                  id="status-${i}">
+            <option ${item["Status"]==="Menunggu"?"selected":""}>Menunggu</option>
+            <option ${item["Status"]==="Tiket dalam antrian"?"selected":""}>Tiket dalam antrian</option>
+            <option ${item["Status"]==="Selesai"?"selected":""}>Selesai</option>
+          </select>
+        </td>
+
+        <td>${item["Kode Pendaftaran"]||"-"}</td>
+
+        <td>
+          <button class="btn btn-success btn-sm"
+                  onclick="saveRow('${item["Kode Pendaftaran"]}',${i})">
+            Simpan
+          </button>
+        </td>
+      </tr>
+    `);
+  });
+}
+
+async function saveRow(kode,i){
+  const newStatus=document.getElementById(`status-${i}`).value;
+  try{
+    const res=JSON.parse(await (await fetch(API_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({kode,status:newStatus})
+    })).text());
+
+    if(res.status==="success") showNotif("Status disimpan!");
+    else showNotif(res.message,"error");
+
+  }catch(e){
+    showNotif("Tidak terhubung","error");
+  }
+}
+
+todayBtn.onclick=()=>loadData("today");
+allBtn.onclick=()=>loadData("all");
+refreshBtn.onclick=()=>loadData("today");
+
+if(localStorage.getItem("isLoggedIn")){
+  loginPage.style.display="none";
+  dashboardPage.style.display="block";
+  loadData("today");
+}
+</script>
+
+</body>
+</html>
