@@ -21,6 +21,57 @@
       margin: 0;
     }
 
+    /* === FIX LOGIN CARD AGAR SAMA PERSIS SEPERTI GAMBAR === */
+
+    #loginPage {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      padding: 20px;
+    }
+    
+    .auth-card {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0px 15px 35px rgba(0,0,0,0.12);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+    
+    .auth-card img {
+      height: 55px !important;
+      margin-bottom: 12px;
+    }
+    
+    .auth-card h4 {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    
+    .auth-card input {
+      height: 45px;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+    
+    #authBtn {
+      height: 46px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      background-color: #1a73e8 !important;
+      border: none;
+    }
+    
+    #authBtn:hover {
+      background-color: #1669c1 !important;
+    }
+
+    
     .navbar {
       background: rgba(255,255,255,0.4);
       backdrop-filter: blur(10px);
@@ -292,4 +343,5 @@ authPass.addEventListener("keypress", (e) => {
 
 </body>
 </html>
+
 
