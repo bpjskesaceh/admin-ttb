@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -134,6 +134,7 @@
         <button class="btn btn-success ms-auto" id="refreshBtn">🔄 Muat Ulang</button>
       </div>
 
+      <!-- TABEL -->
       <div class="table-responsive">
         <table class="table align-middle text-center">
           <thead>
@@ -164,7 +165,9 @@
 
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbwGqtJfJR5Gn7tQ3db4S4kQ7OCDGQpTQTcjLpZA-Y6uTb7qnYFhjYfr4efa6qOH4bmLww/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbxapvhBdbvewt_IYlyTDpUc0tTyyjxAQzogAfA_bwBodxnQyXOXObczgXy7X4i8ZTn7sw/exec";
+
+let masterData = []; // 🔥 DATA ASLI UNTUK SEARCH
 
 function showNotif(msg,type="success"){
   let x=document.getElementById("notifPopup");
@@ -205,7 +208,9 @@ async function loadData(filter){
       ? data.filter(x=>new Date(x.Timestamp).toLocaleDateString("id-ID")===today)
       : data;
 
-    renderTable(filtered);
+    masterData = filtered;   // 🔥 SIMPAN DATA ASLI
+    renderTable(masterData);
+
   }catch(e){
     dataTable.innerHTML=`<tr><td colspan="11">Gagal memuat data.</td></tr>`;
   }
@@ -252,28 +257,41 @@ function renderTable(data){
   });
 }
 
-async function saveRow(kode, i) {
-  const newStatus = document.getElementById(`status-${i}`).value;
+async function saveRow(kode,i){
+  const newStatus=document.getElementById(`status-${i}`).value;
+  try{
+    const res=JSON.parse(await (await fetch(API_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({kode,status:newStatus})
+    })).text());
 
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kode, status: newStatus })
-    });
+    if(res.status==="success") showNotif("Status disimpan!");
+    else showNotif(res.message,"error");
 
-    const res = await response.json();   // ← PERBAIKAN UTAMA
-
-    if (res.status === "success") {
-      showNotif("Status disimpan!");
-    } else {
-      showNotif(res.message || "Gagal menyimpan", "error");
-    }
-
-  } catch (error) {
-    showNotif("Tidak terhubung", "error");
+  }catch(e){
+    showNotif("Tidak terhubung","error");
   }
 }
+
+/* 🔥🔥 FITUR PENCARIAN REAL-TIME 🔥🔥 */
+searchInput.addEventListener("input", () => {
+  const keyword = searchInput.value.toLowerCase().trim();
+
+  if (!keyword) {
+    renderTable(masterData);
+    return;
+  }
+
+  const filtered = masterData.filter(item =>
+    Object.values(item)
+      .join(" ")
+      .toLowerCase()
+      .includes(keyword)
+  );
+
+  renderTable(filtered);
+});
 
 todayBtn.onclick=()=>loadData("today");
 allBtn.onclick=()=>loadData("all");
@@ -284,6 +302,15 @@ if(localStorage.getItem("isLoggedIn")){
   dashboardPage.style.display="block";
   loadData("today");
 }
+
+/* 🔥 TEKAN ENTER UNTUK LOGIN 🔥 */
+authUser.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") authPass.focus();
+});
+
+authPass.addEventListener("keypress", (e) => {
+  if (e.key === "Enter") authBtn.click();
+});
 </script>
 
 </body>
