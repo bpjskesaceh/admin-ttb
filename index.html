@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
@@ -165,7 +165,7 @@
 
 
 <script>
-const API_URL="https://script.google.com/macros/s/AKfycbxapvhBdbvewt_IYlyTDpUc0tTyyjxAQzogAfA_bwBodxnQyXOXObczgXy7X4i8ZTn7sw/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbwDXtbHeVRZ2N5TUKSNwwYl-U8yUDYVDwRK8jNsTqKbNM3qdvMZQnOT9EHeS79NpNFr/exec";
 
 let masterData = []; // 🔥 DATA ASLI UNTUK SEARCH
 
@@ -302,15 +302,6 @@ if(localStorage.getItem("isLoggedIn")){
   dashboardPage.style.display="block";
   loadData("today");
 }
-
-/* 🔥 TEKAN ENTER UNTUK LOGIN 🔥 */
-authUser.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") authPass.focus();
-});
-
-authPass.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") authBtn.click();
-});
 </script>
 
 </body>
